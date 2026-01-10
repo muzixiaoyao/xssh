@@ -84,13 +84,32 @@ host,port,user,password
 
 ## 四、基本使用方法
 
-### 1️⃣ 标准用法（推荐）
+### 1️⃣ 快速连接（推荐）
 
 ```bash
+# 标准用法
 xssh root@192.168.1.1
+
+# 指定端口
+xssh root@192.168.1.1:2222
+
+# 仅指定主机（交互式选择用户）
+xssh 192.168.1.1
+
+# 使用自定义配置文件
+xssh -i /path/to/hosts.csv root@192.168.1.1
 ```
 
-行为说明：
+---
+
+### 2️⃣ 使用子命令连接
+
+```bash
+xssh connect root@192.168.1.1
+xssh connect root@192.168.1.1:2222
+```
+
+说明：
 
 * 在 `hosts.csv` 中查找：
 
@@ -100,7 +119,7 @@ xssh root@192.168.1.1
 
 ---
 
-### 2️⃣ 指定端口（可选）
+### 3️⃣ 指定端口（可选）
 
 ```bash
 xssh root@192.168.1.1:2222
@@ -113,7 +132,7 @@ xssh root@192.168.1.1:2222
 
 ---
 
-### 3️⃣ 仅指定主机（用户自动匹配）
+### 4️⃣ 仅指定主机（用户自动匹配）
 
 ```bash
 xssh 192.168.1.1
@@ -140,13 +159,16 @@ xssh 192.168.1.1
 ### 1️⃣ 添加主机信息
 
 ```bash
-xssh add [-i config] user@host[:port]
+xssh add [-i FILE] user@host[:port]
 ```
 
 功能：
 * 交互式输入密码
 * 自动添加到配置文件
 * 自动创建文件（如果不存在）
+
+参数：
+* `-i, --config FILE`: 指定配置文件路径（默认: ~/.ssh/hosts.csv）
 
 示例：
 
@@ -163,12 +185,15 @@ xssh add -i /path/to/hosts.csv root@192.168.1.1
 ### 2️⃣ 删除主机信息
 
 ```bash
-xssh delete [-i config] user@host
+xssh delete [-i FILE] user@host
 ```
 
 功能：
 * 删除指定的主机记录
 * 需要同时指定用户和主机
+
+参数：
+* `-i, --config FILE`: 指定配置文件路径（默认: ~/.ssh/hosts.csv）
 
 示例：
 
@@ -185,12 +210,16 @@ xssh delete -i /path/to/hosts.csv root@192.168.1.1
 ### 3️⃣ 查看主机信息
 
 ```bash
-xssh show [-i config] [host]
+xssh show [-i FILE] [host]
 ```
 
 功能：
 * 列出所有已配置的主机
 * 显示每个主机下的用户列表
+
+参数：
+* `-i, --config FILE`: 指定配置文件路径（默认: ~/.ssh/hosts.csv）
+* `host`: 主机名（可选，不指定则显示所有主机）
 
 示例：
 
@@ -203,6 +232,35 @@ xssh show -i /path/to/hosts.csv
 
 # 查看指定主机
 xssh show 192.168.1.1
+```
+
+---
+
+### 4️⃣ 连接主机（使用子命令）
+
+```bash
+xssh connect [-i FILE] user@host[:port]
+xssh connect [-i FILE] host
+```
+
+功能：
+* 使用 hosts.csv 中保存的密码连接到远程主机
+
+参数：
+* `-i, --config FILE`: 指定配置文件路径（默认: ~/.ssh/hosts.csv）
+* `target`: 目标主机，格式: user@host[:port] 或 host
+
+示例：
+
+```bash
+# 标准连接
+xssh connect root@192.168.1.1
+
+# 指定端口连接
+xssh connect root@192.168.1.1:2222
+
+# 使用自定义配置
+xssh connect -i /path/to/hosts.csv root@192.168.1.1
 ```
 
 ---
