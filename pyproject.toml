@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xssh"
+version = "1.0.0"
+description = "基于 CSV 的 SSH 密码快速连接工具"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "xssh"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: System Administrators",
+    "Topic :: System :: Networking",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = []
+
+[project.scripts]
+xssh = "xssh.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/xssh"
