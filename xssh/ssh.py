@@ -26,7 +26,10 @@ class SSHClient:
             # 使用 os.execvp 替换当前进程，保持终端控制
             import os
             os.execvp(cmd[0], cmd)
-
+        except FileNotFoundError:
+            raise Exception("sshpass 未找到，请先安装 sshpass")
+        except OSError as e:
+            raise Exception(f"无法执行 SSH 命令: {e}")
         except KeyboardInterrupt:
             print("\n连接已断开")
             sys.exit(130)

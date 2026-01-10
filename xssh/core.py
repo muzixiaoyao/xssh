@@ -4,6 +4,8 @@
 xssh 核心逻辑
 """
 
+import sys
+
 from xssh.models import HostInfo
 from xssh.parser import TargetParser
 from xssh.hosts_manager import HostsManager
@@ -25,33 +27,37 @@ class XSSH:
 
     def connect(self, target_str: str):
         """连接到目标主机"""
-        # 检查 sshpass
-        if not SSHClient.check_sshpass():
-            raise Exception(
-                "系统未安装 sshpass\n"
-                "请先安装:\n"
-                "  macOS: brew install hudochenkov/sshpass/sshpass\n"
-                "  Ubuntu/Debian: sudo apt-get install sshpass\n"
-                "  CentOS/RHEL: sudo yum install sshpass"
-            )
-
-        # 加载 CSV
-        self.hosts_manager.load()
-
-        # 解析目标
-        target = self.parser.parse(target_str)
-
-        # 初始化查找器
-        self.finder = HostFinder(self.hosts_manager)
-
-        # 查找主机信息
         try:
-            host_info, port = self.finder.find(target)
-        except MultipleUsersError as e:
-            # 多用户选择
-            host_info = self.selector.select(e.host, e.hosts)
-            port = target.port or host_info.port
+            # 检查 sshpass
+            if not SSHClient.check_sshpass():
+                raise Exception(
+                    "系统未安装 sshpass\n"
+                    "请先安装:\n"
+                    "  macOS: brew install hudochenkov/sshpass/sshpass\n"
+                    "  Ubuntu/Debian: sudo apt-get install sshpass\n"
+                    "  CentOS/RHEL: sudo yum install sshpass"
+                )
 
-        # 连接 SSH
-        client = SSHClient(host_info, port)
-        client.connect()
+            # 加载 CSV
+            self.hosts_manager.load()
+
+            # 解析目标
+            target = self.parser.parse(target_str)
+
+            # 初始化查找器
+            self.finder = HostFinder(self.hosts_manager)
+
+            # 查找主机信息
+            try:
+                host_info, port = self.finder.find(target)
+            except MultipleUsersError as e:
+                # 多用户选择
+                host_info = self.selector.select(e.host, e.hosts)
+                port = target.port or host_info.port
+
+            # 连接 SSH
+            client = SSHClient(host_info, port)
+            client.connect()
+        except KeyboardInterrupt:
+            print("\n连接已取消")
+            sys.exit(130)

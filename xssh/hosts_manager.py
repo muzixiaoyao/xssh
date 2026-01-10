@@ -125,33 +125,57 @@ class HostsManager:
 
     def add(self, host: str, port: int, user: str, password: str):
         """添加主机信息到 CSV"""
-        # 确保目录存在
-        self.csv_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            # 确保目录存在
+            self.csv_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # 加载现有数据检查重复
-        if self.csv_path.exists():
-            self.load()
-            if self.find_by_host_user(host, user):
-                from xssh.exceptions import DuplicateHostUserError
-                raise DuplicateHostUserError(
-                    f"已存在相同的 host+user 记录: {user}@{host}"
-                )
-        else:
-            # 文件不存在，创建表头
-            with open(self.csv_path, 'w', encoding='utf-8', newline='') as f:
+            # 加载现有数据检查重复
+            if self.csv_path.exists():
+                self.load()
+                if self.find_by_host_user(host, user):
+                    from xssh.exceptions import DuplicateHostUserError
+                    raise DuplicateHostUserError(
+                        f"已存在相同的 host+user 记录: {user}@{host}"
+                    )
+            else:
+                # 文件不存在，创建表头
+                with open(self.csv_path, 'w', encoding='utf-8', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(self.REQUIRED_FIELDS)
+
+            # 追加新记录
+            with open(self.csv_path, 'a', encoding='utf-8', newline='') as f:
                 writer = csv.writer(f)
-                writer.writerow(self.REQUIRED_FIELDS)
+                writer.writerow([host, port, user, password])
 
-        # 追加新记录
-        with open(self.csv_path, 'a', encoding='utf-8', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([host, port, user, password])
-
-        # 重新加载
-        self.load()
+            # 重新加载
+            self.load()
+        except (IOError, OSError) as e:
+            from xssh.exceptions import XSSHError
+            raise XSSHError(f"无法写入配置文件: {e}")
 
     def delete(self, host: str, user: str):
         """删除主机信息"""
+        try:
+            self.load()
+
+            if not self.find_by_host_user(host, user):
+                from xssh.exceptions import UserNotFoundError
+                raise UserNotFoundError(f"未找到主机信息: {user}@{host}")
+
+            # 读取所有行，删除匹配的行
+            with open(self.csv_path, 'r', encoding='utf-8', newline='') as f:
+                reader = csv.DictReader(f)
+                rows = [row for row in reader if not (row['host'] == host and row['user'] == user)]
+
+            # 写回文件
+            with open(self.csv_path, 'w', encoding='utf-8', newline='') as f:
+                writer = csv.DictWriter(f, fieldnames=self.REQUIRED_FIELDS)
+                writer.writeheader()
+                writer.writerows(rows)
+        except (IOError, OSError) as e:
+            from xssh.exceptions import XSSHError
+            raise XSSHError(f"无法更新配置文件: {e}")
         self.load()
 
         if not self.find_by_host_user(host, user):
