@@ -4,7 +4,8 @@
 
 ### 1. 克隆项目
 ```bash
-cd /Users/wsxiaoyao/workspace/xssh
+git clone https://github.com/muzixiaoyao/xssh.git
+cd xssh
 ```
 
 ### 2. 安装依赖
