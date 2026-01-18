@@ -22,17 +22,56 @@ class SSHClient:
         cmd = self._build_ssh_command()
 
         try:
-            # 直接调用 ssh，让 sshpass 处理密码
-            # 使用 os.execvp 替换当前进程，保持终端控制
+            # 使用 subprocess 运行 ssh，确保终端控制正确
+            import signal
             import os
-            os.execvp(cmd[0], cmd)
+
+            # 保存原始终端设置
+            try:
+                import termios
+                old_settings = termios.tcgetattr(sys.stdin.fileno())
+            except:
+                old_settings = None
+
+            # 创建子进程
+            process = subprocess.Popen(
+                cmd,
+                stdin=sys.stdin,
+                stdout=sys.stdout,
+                stderr=sys.stderr,
+                preexec_fn=os.setsid if hasattr(os, 'setsid') else None
+            )
+
+            # 等待进程结束
+            try:
+                process.wait()
+            except KeyboardInterrupt:
+                # 用户中断，发送 SIGINT 到进程组
+                try:
+                    if hasattr(os, 'killpg'):
+                        os.killpg(os.getpgid(process.pid), signal.SIGINT)
+                    else:
+                        process.send_signal(signal.SIGINT)
+                except:
+                    pass
+                process.wait()
+                sys.exit(130)
+            finally:
+                # 恢复终端设置
+                if old_settings:
+                    try:
+                        import termios
+                        termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, old_settings)
+                    except:
+                        pass
+
+            # 退出时使用 ssh 的退出码
+            sys.exit(process.returncode)
+
         except FileNotFoundError:
             raise Exception("sshpass 未找到，请先安装 sshpass")
         except OSError as e:
             raise Exception(f"无法执行 SSH 命令: {e}")
-        except KeyboardInterrupt:
-            print("\n连接已断开")
-            sys.exit(130)
         except Exception as e:
             raise Exception(f"SSH 连接失败: {e}")
 
