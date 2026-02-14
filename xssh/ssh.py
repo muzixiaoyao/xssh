@@ -8,6 +8,7 @@ import subprocess
 import sys
 
 from xssh.models import HostInfo
+from xssh.exceptions import XSSHError
 
 
 class SSHClient:
@@ -30,7 +31,7 @@ class SSHClient:
             try:
                 import termios
                 old_settings = termios.tcgetattr(sys.stdin.fileno())
-            except:
+            except Exception:
                 old_settings = None
 
             # 创建子进程
@@ -52,7 +53,7 @@ class SSHClient:
                         os.killpg(os.getpgid(process.pid), signal.SIGINT)
                     else:
                         process.send_signal(signal.SIGINT)
-                except:
+                except Exception:
                     pass
                 process.wait()
                 sys.exit(130)
@@ -62,18 +63,18 @@ class SSHClient:
                     try:
                         import termios
                         termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, old_settings)
-                    except:
+                    except Exception:
                         pass
 
             # 退出时使用 ssh 的退出码
             sys.exit(process.returncode)
 
         except FileNotFoundError:
-            raise Exception("sshpass 未找到，请先安装 sshpass")
+            raise XSSHError("sshpass 未找到，请先安装 sshpass")
         except OSError as e:
-            raise Exception(f"无法执行 SSH 命令: {e}")
+            raise XSSHError(f"无法执行 SSH 命令: {e}")
         except Exception as e:
-            raise Exception(f"SSH 连接失败: {e}")
+            raise XSSHError(f"SSH 连接失败: {e}")
 
     def _build_ssh_command(self) -> list:
         """构建 SSH 命令"""

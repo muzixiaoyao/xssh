@@ -14,12 +14,12 @@ from xssh.hosts_manager import HostsManager
 from xssh.parser import TargetParser
 
 # 子命令列表
-SUBCOMMANDS = ['add', 'delete', 'show', 'connect']
+SUBCOMMANDS = ["add", "delete", "show", "connect"]
 
 
 def get_hosts_manager(args):
     """根据 -i 参数获取 HostsManager 实例"""
-    csv_path = Path(args.config) if hasattr(args, 'config') and args.config else None
+    csv_path = Path(args.config) if hasattr(args, "config") and args.config else None
     return HostsManager(csv_path)
 
 
@@ -122,7 +122,9 @@ def cmd_connect(args):
         sys.exit(1)
 
     try:
-        csv_path = Path(args.config) if hasattr(args, 'config') and args.config else None
+        csv_path = (
+            Path(args.config) if hasattr(args, "config") and args.config else None
+        )
         xssh = XSSH(csv_path)
         xssh.connect(args.target)
     except KeyboardInterrupt:
@@ -139,8 +141,9 @@ def main():
         if len(sys.argv) > 1 and sys.argv[1] in SUBCOMMANDS:
             # 是子命令，正常解析
             parser = argparse.ArgumentParser(
-                prog='xssh',
-                description='基于 CSV 的 SSH 密码快速连接工具',
+                prog="xssh",
+                description="基于 CSV 的 SSH 密码快速连接工具",
+                formatter_class=argparse.RawDescriptionHelpFormatter,
                 epilog="""使用示例:
   xssh root@192.168.1.1              # 连接主机
   xssh root@192.168.1.1:2222         # 指定端口连接
@@ -149,41 +152,67 @@ def main():
   xssh delete root@192.168.1.1           # 删除主机
   xssh show                            # 显示所有主机
   xssh show 192.168.1.1               # 显示指定主机
-  xssh -i /path/to/hosts.csv root@host # 使用自定义配置文件"""
+  xssh -i /path/to/hosts.csv root@host # 使用自定义配置文件""",
             )
 
-            subparsers = parser.add_subparsers(dest='command', help='子命令', title='可用子命令')
+            subparsers = parser.add_subparsers(
+                dest="command", help="子命令", title="可用子命令"
+            )
 
             # connect 命令
-            connect_parser = subparsers.add_parser('connect', help='连接主机',
-                description='使用 hosts.csv 中保存的密码连接到远程主机',
-                epilog="示例: xssh connect root@192.168.1.1")
-            connect_parser.add_argument('target', help='目标主机，格式: user@host[:port]')
-            connect_parser.add_argument('-i', '--config', help='指定配置文件路径（默认: ~/.ssh/hosts.csv）')
+            connect_parser = subparsers.add_parser(
+                "connect",
+                help="连接主机",
+                description="使用 hosts.csv 中保存的密码连接到远程主机",
+                epilog="示例: xssh connect root@192.168.1.1",
+            )
+            connect_parser.add_argument(
+                "target", help="目标主机，格式: user@host[:port]"
+            )
+            connect_parser.add_argument(
+                "-i", "--config", help="指定配置文件路径（默认: ~/.ssh/hosts.csv）"
+            )
             connect_parser.set_defaults(func=cmd_connect)
 
             # add 命令
-            add_parser = subparsers.add_parser('add', help='添加主机信息',
-                description='交互式添加主机信息到配置文件',
-                epilog="示例: xssh add root@192.168.1.1:2222")
-            add_parser.add_argument('target', help='目标主机，格式: user@host[:port]')
-            add_parser.add_argument('-i', '--config', help='指定配置文件路径（默认: ~/.ssh/hosts.csv）')
+            add_parser = subparsers.add_parser(
+                "add",
+                help="添加主机信息",
+                description="交互式添加主机信息到配置文件",
+                epilog="示例: xssh add root@192.168.1.1:2222",
+            )
+            add_parser.add_argument("target", help="目标主机，格式: user@host[:port]")
+            add_parser.add_argument(
+                "-i", "--config", help="指定配置文件路径（默认: ~/.ssh/hosts.csv）"
+            )
             add_parser.set_defaults(func=cmd_add)
 
             # delete 命令
-            delete_parser = subparsers.add_parser('delete', help='删除主机信息',
-                description='从配置文件中删除指定的主机记录',
-                epilog="示例: xssh delete root@192.168.1.1")
-            delete_parser.add_argument('target', help='目标主机，格式: user@host')
-            delete_parser.add_argument('-i', '--config', help='指定配置文件路径（默认: ~/.ssh/hosts.csv）')
+            delete_parser = subparsers.add_parser(
+                "delete",
+                help="删除主机信息",
+                description="从配置文件中删除指定的主机记录",
+                epilog="示例: xssh delete root@192.168.1.1",
+            )
+            delete_parser.add_argument("target", help="目标主机，格式: user@host")
+            delete_parser.add_argument(
+                "-i", "--config", help="指定配置文件路径（默认: ~/.ssh/hosts.csv）"
+            )
             delete_parser.set_defaults(func=cmd_delete)
 
             # show 命令
-            show_parser = subparsers.add_parser('show', help='显示主机信息',
-                description='显示配置文件中的主机列表',
-                epilog="示例:\n  xssh show              # 显示所有主机\n  xssh show 192.168.1.1  # 显示指定主机")
-            show_parser.add_argument('host', nargs='?', help='主机名（可选，不指定则显示所有主机）')
-            show_parser.add_argument('-i', '--config', help='指定配置文件路径（默认: ~/.ssh/hosts.csv）')
+            show_parser = subparsers.add_parser(
+                "show",
+                help="显示主机信息",
+                description="显示配置文件中的主机列表",
+                epilog="示例:\n  xssh show              # 显示所有主机\n  xssh show 192.168.1.1  # 显示指定主机",
+            )
+            show_parser.add_argument(
+                "host", nargs="?", help="主机名（可选，不指定则显示所有主机）"
+            )
+            show_parser.add_argument(
+                "-i", "--config", help="指定配置文件路径（默认: ~/.ssh/hosts.csv）"
+            )
             show_parser.set_defaults(func=cmd_show)
 
             args = parser.parse_args()
@@ -191,30 +220,29 @@ def main():
         else:
             # 不是子命令，作为连接目标
             parser = argparse.ArgumentParser(
-                prog='xssh',
-                description='基于 CSV 的 SSH 密码快速连接工具',
+                prog="xssh",
+                description="基于 CSV 的 SSH 密码快速连接工具",
+                formatter_class=argparse.RawDescriptionHelpFormatter,
                 epilog="""使用示例:
   xssh root@192.168.1.1              # 连接主机
   xssh root@192.168.1.1:2222         # 指定端口连接
   xssh 192.168.1.1                    # 交互式选择用户
-  xssh -i /path/to/hosts.csv root@host # 使用自定义配置文件"""
+  xssh -i /path/to/hosts.csv root@host # 使用自定义配置文件""",
             )
 
             parser.add_argument(
-                'target',
-                help='目标主机，格式: user@host 或 user@host:port 或 host'
+                "target", help="目标主机，格式: user@host 或 user@host:port 或 host"
             )
 
             parser.add_argument(
-                '-i', '--config',
-                help='指定配置文件路径（默认: ~/.ssh/hosts.csv）',
-                metavar='FILE'
+                "-i",
+                "--config",
+                help="指定配置文件路径（默认: ~/.ssh/hosts.csv）",
+                metavar="FILE",
             )
 
             parser.add_argument(
-                '-v', '--version',
-                action='version',
-                version='%(prog)s 1.0.0'
+                "-v", "--version", action="version", version="%(prog)s 1.0.0"
             )
 
             args = parser.parse_args()
@@ -232,5 +260,5 @@ def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

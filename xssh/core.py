@@ -12,6 +12,7 @@ from xssh.hosts_manager import HostsManager
 from xssh.finder import HostFinder, MultipleUsersError
 from xssh.selector import UserSelector
 from xssh.ssh import SSHClient
+from xssh.exceptions import SSHPassNotFoundError
 
 
 class XSSH:
@@ -19,6 +20,7 @@ class XSSH:
 
     def __init__(self, csv_path=None):
         from pathlib import Path
+
         csv_path = Path(csv_path) if csv_path else None
         self.parser = TargetParser()
         self.hosts_manager = HostsManager(csv_path)
@@ -30,7 +32,7 @@ class XSSH:
         try:
             # 检查 sshpass
             if not SSHClient.check_sshpass():
-                raise Exception(
+                raise SSHPassNotFoundError(
                     "系统未安装 sshpass\n"
                     "请先安装:\n"
                     "  macOS: brew install hudochenkov/sshpass/sshpass\n"

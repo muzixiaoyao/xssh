@@ -8,7 +8,7 @@ from typing import Optional, List, Tuple
 
 from xssh.models import HostInfo
 from xssh.hosts_manager import HostsManager
-from xssh.exceptions import HostNotFoundError, UserNotFoundError
+from xssh.exceptions import HostNotFoundError, UserNotFoundError, XSSHError
 
 
 class HostFinder:
@@ -54,7 +54,7 @@ class HostFinder:
         raise MultipleUsersError(target.host, hosts)
 
 
-class MultipleUsersError(Exception):
+class MultipleUsersError(XSSHError):
     """多个用户异常 - 用于触发交互选择"""
 
     def __init__(self, host: str, hosts: List[HostInfo]):
